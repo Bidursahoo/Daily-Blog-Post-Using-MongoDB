@@ -1,0 +1,14 @@
+<%- include('partials/header'); %>
+<h1>Welcome</h1>
+<p><%= home %></p>
+<% allPost.forEach(post => {%>
+    <h1><%= post.title %></h1>
+    <% if(post.text.length > 70){ %>
+    <p><%= post.text.substring(0,70)+"... " %><a href="/posts/<%= post.title %>">Read More</a></p>
+    <% }else{ %>
+        <p><%= post.text %></p>
+    <% } %>
+<%}); %>
+<!-- <button type="button" class="btn btn-outline-primary"><a href="/compose" class="btn btn-outline-primary">Compose</a></button> -->
+<a href="/compose" class="btn btn-primary">Compose</a>
+<%- include('partials/footer'); %>
