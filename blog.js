@@ -3,14 +3,21 @@ const aboutContent = "Hac habitasse platea dictumst vestibulum rhoncus est pelle
 const contactContent = "Scelerisque eleifend donec pretium vulputate sapien. Rhoncus urna neque viverra justo nec ultrices. Arcu dui vivamus arcu felis bibendum. Consectetur adipiscing elit duis tristique. Risus viverra adipiscing at in tellus integer feugiat. Sapien nec sagittis aliquam malesuada bibendum arcu vitae. Consequat interdum varius sit amet mattis. Iaculis nunc sed augue lacus. Interdum posuere lorem ipsum dolor sit amet consectetur adipiscing elit. Pulvinar elementum integer enim neque. Ultrices gravida dictum fusce ut placerat orci nulla. Mauris in aliquam sem fringilla ut morbi tincidunt. Tortor posuere ac ut consequat semper viverra nam libero.";
 
 
-const posts = []
+// const posts = []
 const express = require("express")
 const bodyParser = require("body-parser")
+const mongoose = require("mongoose")
 const ejs = require("ejs")
-const load = require("lodash");
-const { lowerCase, truncate } = require("lodash");
+// const load = require("lodash");
+// const { lowerCase, truncate } = require("lodash");
 const blog = express()
-
+// mongoose.connect("mongodb://localhost:27017/postCollections")
+mongoose.connect("mongodb+srv://bidursil:bidursilpass@cluster0.2yc0kyg.mongodb.net/postCollections")
+const PostSchema = new mongoose.Schema({
+    title: String,
+    text: String
+});
+const PostCol = mongoose.model("postsCollections" , PostSchema);
 
 
 blog.use(bodyParser.urlencoded({ extended: true }))
@@ -21,7 +28,9 @@ blog.set('view engine', 'ejs');
 
 
 blog.get("/",(req,res)=>{
-    res.render("home",{home:homeStartingContent , allPost:posts})
+    PostCol.find({}).then((result)=>{
+        res.render("home",{home:homeStartingContent , allPost:result})
+    })
 })
 
 
@@ -38,20 +47,33 @@ blog.get("/compose", (req,res)=>{
     res.render("compose")
 })
 blog.post("/compose",(req,res)=>{
-    let temp = {title: req.body.postTitle  , text: req.body.postText}
-    posts.push(temp)
-    res.redirect("/")
+    let temp = new PostCol({title: req.body.postTitle  , text: req.body.postText});
+    // posts.push(temp)
+    temp.save().then((result)=>{
+        res.redirect("/")
+    })
 })
 
-
+blog.post("/delete" , (req,res)=>{
+    let temp = req.body.delButton;
+    PostCol.findByIdAndRemove({_id: temp}).then((result)=>{
+        res.redirect("/");
+    })
+    
+})
 
 blog.get("/posts/:postName",(req,res)=>{
-    let temp = load.lowerCase(req.params.postName)
-    posts.forEach(post => {
-        if(temp === load.lowerCase(post.title)){
-            res.render("post",{titile:post.title , post:post.text})
-        }
-    });
+    let temp = req.params.postName
+    // posts.forEach(post => {
+    //     if(temp === load.lowerCase(post.title)){
+    //         res.render("post",{titile:post.title , post:post.text})
+    //     }
+    // });
+    PostCol.findOne({_id:temp}).then((result)=>{
+        res.render("post",{titile:result.title , post:result.text , id: result._id})
+    }).catch((err)=>{
+        console.log("not foundddd")
+    })
 })
 
 blog.listen(3000,()=>{
